@@ -18,7 +18,9 @@
         </div>
         <div class="social-features">
             <h2>Peer-to-Peer Cosmic Chat</h2>
-            <input type="text" id="peerID" placeholder="Paste peer’s SDP offer here">
+            <button id="generateChatCodeBtn" class="cosmic-btn">Generate Chat Code</button>
+            <p id="chatCodeDisplay">Your chat code will appear here...</p>
+            <input type="text" id="peerChatCode" placeholder="Enter peer's chat code">
             <button id="connectBtn" class="cosmic-btn">Connect</button>
             <p id="connectionStatus">No active connections</p>
             <textarea id="chatBox" readonly placeholder="Chat with the cosmos..."></textarea>
@@ -30,6 +32,8 @@
     <script>
         document.getElementById('saveNameBtn').addEventListener('touchstart', saveName, { passive: true });
         document.getElementById('saveNameBtn').addEventListener('click', saveName);
+        document.getElementById('generateChatCodeBtn').addEventListener('touchstart', generateChatCode, { passive: true });
+        document.getElementById('generateChatCodeBtn').addEventListener('click', generateChatCode);
         document.getElementById('connectBtn').addEventListener('touchstart', connectToPeer, { passive: true });
         document.getElementById('connectBtn').addEventListener('click', connectToPeer);
         document.getElementById('sendBtn').addEventListener('touchstart', sendMessage, { passive: true });
