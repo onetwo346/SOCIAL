@@ -5,17 +5,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Freeworld - Social Cosmos</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Basic inline CSS to avoid dependency issues */
+        .cosmic-bg {
+            background: #1a1a2e;
+            color: #e0e0e0;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .profile-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .cosmic-btn {
+            background: #ff00ff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 5px;
+        }
+        .cosmic-btn:hover {
+            background: #cc00cc;
+        }
+        textarea, input {
+            width: 100%;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background: #fff;
+            color: #000;
+        }
+        textarea {
+            height: 150px;
+            resize: none;
+        }
+        #debugStatus {
+            color: #ff00ff;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body class="cosmic-bg">
     <div class="profile-container">
         <h1>Welcome, <span id="username">Cosmic Traveler</span></h1>
-        <p>Cosmic ID: <span id="cosmicID"></span></p>
-        <p>Your IP: <span id="userIP"></span></p>
+        <p>Cosmic ID: <span id="cosmicID">Unknown</span></p>
+        <p>Your IP: <span id="userIP">Unknown</span></p>
+        
         <div class="edit-name">
             <h2>Edit Display Name</h2>
             <input type="text" id="displayName" placeholder="Set your cosmic name">
             <button id="saveNameBtn" class="cosmic-btn">Save</button>
         </div>
+
         <div class="social-features">
             <h2>Peer-to-Peer Cosmic Chat</h2>
             <button id="generateChatCodeBtn" class="cosmic-btn">Generate Chat Code</button>
@@ -23,44 +72,27 @@
             <input type="text" id="peerChatCode" placeholder="Enter peer's chat code">
             <button id="connectBtn" class="cosmic-btn">Connect</button>
             <p id="connectionStatus">No active connections</p>
-            <div id="debugContainer">
-                <p>Debug Info: <span id="debugStatus" style="color: #ff00ff;"></span></p>
-            </div>
-            <div class="chat-area">
-                <textarea id="chatBox" readonly placeholder="Chat with the cosmos..."></textarea>
-                <div class="message-input">
-                    <input type="text" id="messageInput" placeholder="Send a message">
-                    <button id="sendBtn" class="cosmic-btn">Send</button>
-                </div>
-            </div>
+            <p id="debugStatus"></p>
+            <textarea id="chatBox" readonly placeholder="Chat with the cosmos..."></textarea>
+            <input type="text" id="messageInput" placeholder="Send a message">
+            <button id="sendBtn" class="cosmic-btn">Send</button>
         </div>
     </div>
+
     <script src="script.js"></script>
     <script>
-        // Wait for DOM to be fully loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            // Now attach event listeners
-            document.getElementById('saveNameBtn').addEventListener('click', saveName);
-            document.getElementById('generateChatCodeBtn').addEventListener('click', generateChatCode);
-            document.getElementById('connectBtn').addEventListener('click', connectToPeer);
-            document.getElementById('sendBtn').addEventListener('click', sendMessage);
-            
-            // Add touch events for mobile
-            document.getElementById('saveNameBtn').addEventListener('touchstart', saveName, { passive: true });
-            document.getElementById('generateChatCodeBtn').addEventListener('touchstart', generateChatCode, { passive: true });
-            document.getElementById('connectBtn').addEventListener('touchstart', connectToPeer, { passive: true });
-            document.getElementById('sendBtn').addEventListener('touchstart', sendMessage, { passive: true });
-            
-            // Enter key for message input
-            document.getElementById('messageInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    sendMessage();
-                }
-            });
-            
-            // Load profile data
-            loadProfile();
-        });
+        // Event listeners with touch/click support
+        document.getElementById('saveNameBtn').addEventListener('click', saveName);
+        document.getElementById('saveNameBtn').addEventListener('touchstart', saveName, { passive: true });
+        document.getElementById('generateChatCodeBtn').addEventListener('click', generateChatCode);
+        document.getElementById('generateChatCodeBtn').addEventListener('touchstart', generateChatCode, { passive: true });
+        document.getElementById('connectBtn').addEventListener('click', connectToPeer);
+        document.getElementById('connectBtn').addEventListener('touchstart', connectToPeer, { passive: true });
+        document.getElementById('sendBtn').addEventListener('click', sendMessage);
+        document.getElementById('sendBtn').addEventListener('touchstart', sendMessage, { passive: true });
+
+        // Load profile on page load
+        window.onload = loadProfile;
     </script>
 </body>
 </html>
