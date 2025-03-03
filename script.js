@@ -62,10 +62,21 @@ function loadProfile() {
     document.getElementById('username').textContent = displayName;
     document.getElementById('cosmicID').textContent = cosmicID;
     document.getElementById('userIP').textContent = localIP || 'Unknown';
-    initializePeerConnection();
 }
 
-function initializePeerConnection() {
+function generateChatCode() {
+    console.log("generateChatCode called!");
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = 'CHAT-';
+    for (let i = 0; i < 6; i++) {
+        code += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    // Initialize WebRTC and store the offer
+    initializePeerConnection(code);
+    document.getElementById('chatCodeDisplay').textContent = `Your chat code: ${code} - Share it!`;
+}
+
+function initializePeerConnection(chatCode) {
     console.log("initializePeerConnection called!");
     const configuration = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
     peerConnection = new RTCPeerConnection(configuration);
@@ -83,8 +94,9 @@ function initializePeerConnection() {
     };
 
     peerConnection.onicecandidate = (event) => {
-        if (event.candidate) {
-            alert('Share this SDP offer with your peer: ' + JSON.stringify(peerConnection.localDescription));
+        if (event.candidate && chatCode) {
+            // Store the offer in localStorage tied to the chat code
+            localStorage.setItem(`offer_${chatCode}`, JSON.stringify(peerConnection.localDescription));
         }
     };
 
@@ -103,18 +115,56 @@ function initializePeerConnection() {
 
 function connectToPeer() {
     console.log("connectToPeer called!");
-    const peerID = document.getElementById('peerID').value;
-    if (peerID) {
-        try {
-            const peerAnswer = JSON.parse(peerID);
-            peerConnection.setRemoteDescription(new RTCSessionDescription(peerAnswer))
-                .catch(err => console.error(err));
-        } catch (e) {
-            alert('Invalid SDP! Paste a valid offer/answer.');
-        }
-    } else {
-        alert('Enter a peer SDP!');
+    const peerChatCode = document.getElementById('peerChatCode').value;
+    const offer = localStorage.getItem(`offer_${peerChatCode}`);
+
+    if (!peerChatCode) {
+        alert('Enter a peer chat code!');
+        return;
     }
+
+    if (!offer) {
+        alert('Invalid or expired chat code!');
+        return;
+    }
+
+    // Create a new peer connection as the answerer
+    const configuration = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+    peerConnection = new RTCPeerConnection(configuration);
+
+    peerConnection.ondatachannel = (event) => {
+        dataChannel = event.channel;
+        dataChannel.onmessage = (event) => {
+            const chatBox = document.getElementById('chatBox');
+            chatBox.value += `Peer: ${event.data}\n`;
+        };
+    };
+
+    peerConnection.onicecandidate = (event) => {
+        if (event.candidate) {
+            // In a real app, send this answer back to the offerer via signaling
+            // For now, we assume the offerer will check localStorage (simplified)
+            localStorage.setItem(`answer_${peerChatCode}`, JSON.stringify(peerConnection.localDescription));
+        }
+    };
+
+    // Set the remote offer and create an answer
+    peerConnection.setRemoteDescription(new RTCSessionDescription(JSON.parse(offer)))
+        .then(() => peerConnection.createAnswer())
+        .then(answer => peerConnection.setLocalDescription(answer))
+        .catch(err => {
+            console.error(err);
+            alert('Failed to connect!');
+        });
+
+    // Check for the answer (simplified for localStorage)
+    setTimeout(() => {
+        const answer = localStorage.getItem(`answer_${peerChatCode}`);
+        if (answer) {
+            peerConnection.setRemoteDescription(new RTCSessionDescription(JSON.parse(answer)))
+                .catch(err => console.error(err));
+        }
+    }, 2000); // Wait for the answer to be stored
 }
 
 function sendMessage() {
