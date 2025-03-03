@@ -25,7 +25,7 @@ function detectIP() {
             const ipMatch = ipRegex.exec(event.candidate.candidate);
             if (ipMatch) {
                 localIP = ipMatch[1];
-                document.getElementById('userIP').textContent = localIP; // Updated ID to match HTML
+                document.getElementById('ipDisplay').textContent = `Coordinates: ${localIP}`;
                 pc.close();
             }
         }
@@ -40,17 +40,17 @@ function generateCode() {
         code += characters.charAt(Math.floor(Math.random() * characters.length));
     }
     localStorage.setItem(`codeForIP_${localIP || 'unknown'}`, code);
-    // Assuming this is meant for a different page, updating IDs to match profile.html would need adjustment
-    console.log("Note: generateCode assumes different HTML context");
+    document.getElementById('cosmicCode').value = code;
+    document.getElementById('status').textContent = `Generated: ${code} - Save it!`;
 }
 
 function login() {
     console.log("login called!");
-    const enteredCode = document.getElementById('cosmicCode')?.value; // ID not in profile.html
+    const enteredCode = document.getElementById('cosmicCode').value;
     const savedCode = localStorage.getItem(`codeForIP_${localIP || 'unknown'}`);
     
     if (!enteredCode) {
-        document.getElementById('status')?.textContent = 'Enter your Cosmic ID!'; // ID not in profile.html
+        document.getElementById('status').textContent = 'Enter your Cosmic ID!';
         return;
     }
 
@@ -59,18 +59,17 @@ function login() {
         localStorage.setItem('currentUser', enteredCode);
         window.location.href = 'profile.html';
     } else {
-        document.getElementById('status')?.textContent = 'Invalid ID! Use your generated code.'; // ID not in profile.html
+        document.getElementById('status').textContent = 'Invalid ID! Use your generated code.';
     }
 }
 
 function loadProfile() {
     console.log("loadProfile called!");
-    detectIP(); // Added to fetch IP on profile load
     const cosmicID = localStorage.getItem('currentUser') || 'Unknown';
     const displayName = localStorage.getItem(`displayName_${cosmicID}`) || cosmicID;
     document.getElementById('username').textContent = displayName;
     document.getElementById('cosmicID').textContent = cosmicID;
-    // IP will be updated asynchronously by detectIP
+    document.getElementById('userIP').textContent = localIP || 'Unknown';
 }
 
 function generateChatCode() {
