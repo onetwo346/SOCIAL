@@ -1,1 +1,103 @@
+.cosmic-bg {
+    background: linear-gradient(135deg, #0d0015, #1a0033, #330066);
+    min-height: 100vh;
+    color: #fff;
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}
 
+.cosmic-bg::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('https://www.transparenttextures.com/patterns/stardust.png');
+    opacity: 0.2;
+    z-index: 0;
+}
+
+.intro-container, .login-container, .profile-container {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 20px;
+    width: 90%;
+    max-width: 400px;
+}
+
+h1 {
+    font-size: 2.5em;
+    text-shadow: 0 0 10px #ff00ff, 0 0 20px #00ffff;
+    margin: 0 0 20px;
+}
+
+h2 {
+    font-size: 1.5em;
+    margin: 20px 0 10px;
+}
+
+.warning {
+    color: #ff00ff;
+    font-size: 1.1em;
+    margin: 0 0 20px;
+}
+
+.cosmic-btn {
+    background: #ff00ff;
+    border: none;
+    padding: 12px 24px;
+    color: #fff;
+    font-size: 1.1em;
+    cursor: pointer;
+    border-radius: 5px;
+    margin: 10px 0;
+    width: 100%;
+    max-width: 300px;
+    transition: all 0.3s;
+}
+
+.cosmic-btn:hover {
+    background: #00ffff;
+    text-shadow: 0 0 5px #000;
+}
+
+input, textarea {
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #00ffff;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-radius: 5px;
+    width: 100%;
+    max-width: 300px;
+    font-size: 1em;
+    box-sizing: border-box;
+}
+
+textarea {
+    height: 100px;
+    resize: none;
+}
+
+#status, #ipDisplay, #connectionStatus {
+    font-size: 1em;
+    margin: 10px 0;
+    color: #00ffff;
+}
+
+.edit-name, .social-features {
+    margin-top: 20px;
+}
+
+@media (max-width: 480px) {
+    h1 { font-size: 2em; }
+    h2 { font-size: 1.2em; }
+    .cosmic-btn, input, textarea { font-size: 1em; padding: 10px; }
+    .warning { font-size: 1em; }
+}
