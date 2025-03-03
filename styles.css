@@ -85,10 +85,14 @@ textarea {
     resize: none;
 }
 
-#status, #ipDisplay, #connectionStatus {
+#status, #ipDisplay, #connectionStatus, #chatCodeDisplay {
     font-size: 1em;
     margin: 10px 0;
     color: #00ffff;
+}
+
+#chatCodeDisplay {
+    word-wrap: break-word;
 }
 
 .edit-name, .social-features {
