@@ -1,5 +1,8 @@
 console.log("script.js loaded!");
 
+// Simulate a shared signaling space (in-memory store)
+const signalingStore = {};
+
 let localIP;
 let peerConnection;
 let dataChannel;
@@ -72,31 +75,39 @@ function generateChatCode() {
         code += characters.charAt(Math.floor(Math.random() * characters.length));
     }
     // Initialize WebRTC and store the offer
-    initializePeerConnection(code);
+    initializePeerConnection(code, true);
     document.getElementById('chatCodeDisplay').textContent = `Your chat code: ${code} - Share it!`;
 }
 
-function initializePeerConnection(chatCode) {
-    console.log("initializePeerConnection called!");
+function initializePeerConnection(chatCode, isOfferer) {
+    console.log("initializePeerConnection called for code:", chatCode, "isOfferer:", isOfferer);
     const configuration = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
     peerConnection = new RTCPeerConnection(configuration);
 
-    dataChannel = peerConnection.createDataChannel('chat');
-    dataChannel.onmessage = (event) => {
-        const chatBox = document.getElementById('chatBox');
-        chatBox.value += `Peer: ${event.data}\n`;
-    };
-    dataChannel.onopen = () => {
-        document.getElementById('connectionStatus').textContent = 'Connected to peer!';
-    };
-    dataChannel.onclose = () => {
-        document.getElementById('connectionStatus').textContent = 'Connection closed.';
-    };
+    if (isOfferer) {
+        dataChannel = peerConnection.createDataChannel('chat');
+        dataChannel.onmessage = (event) => {
+            const chatBox = document.getElementById('chatBox');
+            chatBox.value += `Peer: ${event.data}\n`;
+        };
+        dataChannel.onopen = () => {
+            document.getElementById('connectionStatus').textContent = 'Connected to peer!';
+        };
+        dataChannel.onclose = () => {
+            document.getElementById('connectionStatus').textContent = 'Connection closed.';
+        };
+    }
 
     peerConnection.onicecandidate = (event) => {
-        if (event.candidate && chatCode) {
-            // Store the offer in localStorage tied to the chat code
-            localStorage.setItem(`offer_${chatCode}`, JSON.stringify(peerConnection.localDescription));
+        if (event.candidate) {
+            console.log("ICE candidate generated:", event.candidate);
+            if (isOfferer) {
+                signalingStore[`offer_${chatCode}`] = peerConnection.localDescription;
+                console.log("Stored offer for code:", chatCode, signalingStore[`offer_${chatCode}`]);
+            } else {
+                signalingStore[`answer_${chatCode}`] = peerConnection.localDescription;
+                console.log("Stored answer for code:", chatCode, signalingStore[`answer_${chatCode}`]);
+            }
         }
     };
 
@@ -106,65 +117,65 @@ function initializePeerConnection(chatCode) {
             const chatBox = document.getElementById('chatBox');
             chatBox.value += `Peer: ${event.data}\n`;
         };
+        dataChannel.onopen = () => {
+            document.getElementById('connectionStatus').textContent = 'Connected to peer!';
+        };
+        dataChannel.onclose = () => {
+            document.getElementById('connectionStatus').textContent = 'Connection closed.';
+        };
     };
 
-    peerConnection.createOffer()
-        .then(offer => peerConnection.setLocalDescription(offer))
-        .catch(err => console.error(err));
+    if (isOfferer) {
+        peerConnection.createOffer()
+            .then(offer => peerConnection.setLocalDescription(offer))
+            .catch(err => console.error("Error creating offer:", err));
+    }
 }
 
 function connectToPeer() {
     console.log("connectToPeer called!");
     const peerChatCode = document.getElementById('peerChatCode').value;
-    const offer = localStorage.getItem(`offer_${peerChatCode}`);
 
     if (!peerChatCode) {
         alert('Enter a peer chat code!');
         return;
     }
 
-    if (!offer) {
-        alert('Invalid or expired chat code!');
-        return;
-    }
+    initializePeerConnection(peerChatCode, false);
 
-    // Create a new peer connection as the answerer
-    const configuration = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
-    peerConnection = new RTCPeerConnection(configuration);
+    const connectWithRetry = (attempt = 1) => {
+        const offer = signalingStore[`offer_${peerChatCode}`];
+        if (!offer) {
+            if (attempt <= 3) {
+                console.log(`Attempt ${attempt}: Offer not found for code ${peerChatCode}, retrying...`);
+                setTimeout(() => connectWithRetry(attempt + 1), 1000);
+                return;
+            }
+            alert('Invalid or expired chat code!');
+            return;
+        }
 
-    peerConnection.ondatachannel = (event) => {
-        dataChannel = event.channel;
-        dataChannel.onmessage = (event) => {
-            const chatBox = document.getElementById('chatBox');
-            chatBox.value += `Peer: ${event.data}\n`;
-        };
+        peerConnection.setRemoteDescription(new RTCSessionDescription(offer))
+            .then(() => peerConnection.createAnswer())
+            .then(answer => peerConnection.setLocalDescription(answer))
+            .then(() => {
+                console.log("Answer created, waiting for offerer to pick up...");
+                // Offerer checks for answer
+                setTimeout(() => {
+                    const answer = signalingStore[`answer_${peerChatCode}`];
+                    if (answer) {
+                        peerConnection.setRemoteDescription(new RTCSessionDescription(answer))
+                            .catch(err => console.error("Error setting answer on offerer:", err));
+                    }
+                }, 2000);
+            })
+            .catch(err => {
+                console.error("Error connecting:", err);
+                alert('Failed to connect!');
+            });
     };
 
-    peerConnection.onicecandidate = (event) => {
-        if (event.candidate) {
-            // In a real app, send this answer back to the offerer via signaling
-            // For now, we assume the offerer will check localStorage (simplified)
-            localStorage.setItem(`answer_${peerChatCode}`, JSON.stringify(peerConnection.localDescription));
-        }
-    };
-
-    // Set the remote offer and create an answer
-    peerConnection.setRemoteDescription(new RTCSessionDescription(JSON.parse(offer)))
-        .then(() => peerConnection.createAnswer())
-        .then(answer => peerConnection.setLocalDescription(answer))
-        .catch(err => {
-            console.error(err);
-            alert('Failed to connect!');
-        });
-
-    // Check for the answer (simplified for localStorage)
-    setTimeout(() => {
-        const answer = localStorage.getItem(`answer_${peerChatCode}`);
-        if (answer) {
-            peerConnection.setRemoteDescription(new RTCSessionDescription(JSON.parse(answer)))
-                .catch(err => console.error(err));
-        }
-    }, 2000); // Wait for the answer to be stored
+    connectWithRetry();
 }
 
 function sendMessage() {
