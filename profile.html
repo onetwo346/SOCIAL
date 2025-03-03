@@ -23,23 +23,44 @@
             <input type="text" id="peerChatCode" placeholder="Enter peer's chat code">
             <button id="connectBtn" class="cosmic-btn">Connect</button>
             <p id="connectionStatus">No active connections</p>
-            <p id="debugStatus" style="color: #ff00ff;"></p>
-            <textarea id="chatBox" readonly placeholder="Chat with the cosmos..."></textarea>
-            <input type="text" id="messageInput" placeholder="Send a message">
-            <button id="sendBtn" class="cosmic-btn">Send</button>
+            <div id="debugContainer">
+                <p>Debug Info: <span id="debugStatus" style="color: #ff00ff;"></span></p>
+            </div>
+            <div class="chat-area">
+                <textarea id="chatBox" readonly placeholder="Chat with the cosmos..."></textarea>
+                <div class="message-input">
+                    <input type="text" id="messageInput" placeholder="Send a message">
+                    <button id="sendBtn" class="cosmic-btn">Send</button>
+                </div>
+            </div>
         </div>
     </div>
     <script src="script.js"></script>
     <script>
-        document.getElementById('saveNameBtn').addEventListener('touchstart', saveName, { passive: true });
-        document.getElementById('saveNameBtn').addEventListener('click', saveName);
-        document.getElementById('generateChatCodeBtn').addEventListener('touchstart', generateChatCode, { passive: true });
-        document.getElementById('generateChatCodeBtn').addEventListener('click', generateChatCode);
-        document.getElementById('connectBtn').addEventListener('touchstart', connectToPeer, { passive: true });
-        document.getElementById('connectBtn').addEventListener('click', connectToPeer);
-        document.getElementById('sendBtn').addEventListener('touchstart', sendMessage, { passive: true });
-        document.getElementById('sendBtn').addEventListener('click', sendMessage);
-        loadProfile();
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Now attach event listeners
+            document.getElementById('saveNameBtn').addEventListener('click', saveName);
+            document.getElementById('generateChatCodeBtn').addEventListener('click', generateChatCode);
+            document.getElementById('connectBtn').addEventListener('click', connectToPeer);
+            document.getElementById('sendBtn').addEventListener('click', sendMessage);
+            
+            // Add touch events for mobile
+            document.getElementById('saveNameBtn').addEventListener('touchstart', saveName, { passive: true });
+            document.getElementById('generateChatCodeBtn').addEventListener('touchstart', generateChatCode, { passive: true });
+            document.getElementById('connectBtn').addEventListener('touchstart', connectToPeer, { passive: true });
+            document.getElementById('sendBtn').addEventListener('touchstart', sendMessage, { passive: true });
+            
+            // Enter key for message input
+            document.getElementById('messageInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            
+            // Load profile data
+            loadProfile();
+        });
     </script>
 </body>
 </html>
